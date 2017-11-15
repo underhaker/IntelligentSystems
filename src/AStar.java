@@ -206,16 +206,6 @@ public class AStar {
             }
             solution = solution.getPreviousSolution();
         }
-//        System.out.println(this.stack.size() - 1/**/);
-//        Solution solution;
-//        while (!this.stack.empty()) {
-//            solution = this.stack.pop();
-//            if (solution.getPreviousSolution() != null) {
-//                System.out.println(solution.getPreviousSolution().getPosition());
-//            } else {
-//                System.out.println(solution.getPosition());
-//            }
-//        }
     }
 
     private int[][] swapNumbers(int[][] array, int x1, int y1, int x2, int y2) {

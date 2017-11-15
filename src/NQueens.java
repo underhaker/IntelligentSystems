@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class NQueens {
 
@@ -11,7 +12,6 @@ public class NQueens {
 
         int bestRow = chessBoard.getRowWithLeastCollisions(col);
         int q = chessBoard.queens[col];
-        System.out.println("bestRow:" + (bestRow) + "....worstRow:" + (col));
         chessBoard = updateRow(chessBoard, q, bestRow, col);
         chessBoard = updateFirstDiagonal(chessBoard, chessBoard.queenBoardIndex(col), bestRow * chessBoard.queens.length + col);
         chessBoard = updateSecondDiagonal(chessBoard, chessBoard.queenBoardIndex(col), bestRow * chessBoard.queens.length + col);
@@ -65,7 +65,7 @@ public class NQueens {
         fromCol = currentCol + 1;
         fromRow = currentRow - 1;
         while (fromRow > 0 && fromCol < chessBoard.queens.length) {
-            chessBoard.conflictsOnPosition[fromRow * chessBoard.queens.length + currentCol]--;
+            chessBoard.conflictsOnPosition[fromRow * chessBoard.queens.length + fromCol]--;
             fromRow--;
             fromCol++;
         }
@@ -87,7 +87,6 @@ public class NQueens {
         }
         return chessBoard;
     }
-
 
     private static ChessBoard updateRow(ChessBoard chessBoard, int fromRow, int toRow, int col) {
         for (int i = 0; i < chessBoard.queens.length; i++) {
@@ -134,13 +133,6 @@ public class NQueens {
                 }
             }
         }
-
-//        for (int i = 0; i < len; i++) {
-//            for (int j = 0; j < len; j++) {
-//                System.out.print(histogram[i * len + j] + " ");
-//            }
-//            System.out.println();
-//        }
         return histogram;
     }
 
@@ -159,18 +151,24 @@ public class NQueens {
             int col = chessBoard.getColumnWithMostCollisions();
             chessBoard = moveQueen(chessBoard, col);
         }
+
     }
 
-    public static void main(String[] args) {
-        int n = 4;
+    public void solveNQueens(int n) {
         ChessBoard chessBoard = fillChessBoard(n);
         chessBoard.conflictsOnPosition = createHistogram(chessBoard);
         minConflicts(chessBoard);
-        System.out.println(chessBoard.toString());
-
     }
 
-    static class ChessBoard {
+    public static void main(String[] args) {
+        int n;
+        Scanner scanner = new Scanner(System.in);
+        n = scanner.nextInt();
+        NQueens nQueens = new NQueens();
+        nQueens.solveNQueens(n);
+    }
+
+    private static class ChessBoard {
         public int[] queens;
         public int[] conflictsOnPosition;
         private Random random = new Random();
@@ -193,6 +191,7 @@ public class NQueens {
             }
             return big.get(random.nextInt(big.size()));
         }
+
         public int getRowWithLeastCollisions(int col) {
             List<Integer> small = new ArrayList<>();
             small.add(col);
@@ -217,39 +216,19 @@ public class NQueens {
         public boolean solved() {
             for (int col = 0; col < queens.length; col++) {
                 if (conflictsOnPosition[queenBoardIndex(col)] != 1) {
-                    System.out.println("========");
-                    System.out.println(toString());
-                    System.out.println("========");
-                    for (int i = 0; i < queens.length; i++) {
-                        for (int j = 0; j < queens.length; j++) {
-                            System.out.print(conflictsOnPosition[i * queens.length + j] + " ");
-                        }
-                        System.out.println();
-                    }
                     return false;
                 }
             }
-            System.out.println("FINAL");
-            for (int i = 0; i < queens.length; i++) {
-                for (int j = 0; j < queens.length; j++) {
-                    System.out.print(conflictsOnPosition[i * queens.length + j] + " ");
-                }
-                System.out.println();
-            }
+            System.out.println(toString());
             return true;
         }
 
         @Override
         public String toString() {
             StringBuilder stringBuilder = new StringBuilder();
-            System.out.println("prudnqq");
-            for (int col = 0; col < queens.length; col++) {
-                System.out.print(queens[col] + " ");
-            }
-            System.out.println();
             for (int row = 0; row < queens.length; row++) {
                 for (int col = 0; col < queens.length; col++) {
-                    stringBuilder.append(queens[col] == row ? " Q " : " - ");
+                    stringBuilder.append(queens[col] == row ? "* " : "- ");
                 }
                 stringBuilder.append("\n");
             }
