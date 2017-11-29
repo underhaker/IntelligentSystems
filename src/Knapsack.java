@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Knapsack {
     private final static double CROSSOVER_PROBABILITY = 0.6;
@@ -31,15 +32,25 @@ public class Knapsack {
         this.valueOfItems = valueOfItems;
         this.knapsackCapacity = m;
         this.generationCounter = 1;
-        this.maximumGenerations = 15;
+        this.maximumGenerations = 150;
     }
 
     public static void main(String[] args) {
-        int n = 3;
-        int m = 5;
-        double[] weightOfItems = {3, 1, 2};
-        double[] valueOfItems = {2, 5, 3};
-
+        Scanner scanner = new Scanner(System.in);
+        int n;
+//        int n = 3;
+        int m;
+//        int m = 5;
+        m = scanner.nextInt();
+        n = scanner.nextInt();
+        double[] weightOfItems = new double[n];
+//        double[] weightOfItems = {3, 1, 2};
+        double[] valueOfItems = new double[n];
+//        double[] valueOfItems = {2, 5, 3};
+        for (int i = 0; i < n; i++) {
+            valueOfItems[i] = scanner.nextInt();
+            weightOfItems[i] = scanner.nextInt();
+        }
         Knapsack knapsack = new Knapsack(n, m, weightOfItems, valueOfItems);
         knapsack.solveKnapsack();
     }
@@ -52,11 +63,16 @@ public class Knapsack {
         while (generationCounter <= maximumGenerations) {
             makeFurtherGenerations();
         }
-        System.out.println("4th generation:" + bestFitnessOfGenerationList.get(3));
-        System.out.println("7th generation:" + bestFitnessOfGenerationList.get(7));
-        System.out.println("8th generation:" + bestFitnessOfGenerationList.get(8));
-        System.out.println("10th generation:" + bestFitnessOfGenerationList.get(9));
-        System.out.println("final generation solution:" + bestFitnessOfGenerationList.get(generationCounter - 1));
+        System.out.println(bestFitnessOfGenerationList.get(3));
+//        System.out.println("4th generation:" + bestFitnessOfGenerationList.get(3));
+        System.out.println(bestFitnessOfGenerationList.get(7));
+//        System.out.println("7th generation:" + bestFitnessOfGenerationList.get(7));
+        System.out.println(bestFitnessOfGenerationList.get(8));
+//        System.out.println("8th generation:" + bestFitnessOfGenerationList.get(8));
+        System.out.println(bestFitnessOfGenerationList.get(9));
+//        System.out.println("10th generation:" + bestFitnessOfGenerationList.get(9));
+        System.out.println(bestFitnessOfGenerationList.get(generationCounter - 1));
+//        System.out.println("final generation solution:" + bestFitnessOfGenerationList.get(generationCounter - 1));
     }
 
     private void makeFurtherGenerations() {
@@ -84,13 +100,27 @@ public class Knapsack {
     private String makeGene() {
         StringBuilder gene = new StringBuilder(numberOfItems);
         char c;
-        for (int i = 0; i < numberOfItems; i++) {
-            c = '0';
-            double randomNumber = Math.random();
-            if (randomNumber > 0.5) {
-                c = '1';
+        double weight = 0;
+        if (populationList.size() <= numberOfItems) {
+            for (int i = 0; i < numberOfItems; i++) {
+                c = '0';
+                double randomNumber = Math.random();
+                if (randomNumber > 0.5 && weight + weightOfItems[i] <= knapsackCapacity) {
+                    c = '1';
+                    weight += weightOfItems[i];
+                }
+                gene.append(c);
             }
-            gene.append(c);
+        } else {
+            for (int i = numberOfItems - 1; i >= 0; i--) {
+                c = '0';
+                double randomNumber = Math.random();
+                if (randomNumber > 0.5 && weight + weightOfItems[i] <= knapsackCapacity) {
+                    c = '1';
+                    weight += weightOfItems[i];
+                }
+                gene.append(c);
+            }
         }
         return gene.toString();
     }
@@ -186,7 +216,7 @@ public class Knapsack {
         double randomCrossover = Math.random();
         if (randomCrossover <= CROSSOVER_PROBABILITY) {
             Random generator = new Random();
-            int crossoverPoint = generator.nextInt(numberOfItems) + 1;
+            int crossoverPoint = generator.nextInt(numberOfItems - 1);
             newGene1 = populationList.get(gene1).substring(0, crossoverPoint) + populationList.get(gene2).substring(crossoverPoint);
             newGene2 = populationList.get(gene2).substring(0, crossoverPoint) + populationList.get(gene1).substring(crossoverPoint);
             breedPopulationList.add(newGene1);
@@ -202,33 +232,34 @@ public class Knapsack {
         double randomMutation = Math.random();
         if (randomMutation <= MUTATION_PROBABILITY) {
             String mutatedGene;
-            String newMutatedGene;
+            String newMutatedGene = "";
             Random generator = new Random();
             int mutationPoint = 0;
             double whichGene = Math.random() * 100;
             if (whichGene <= 50) {
                 mutatedGene = breedPopulationList.get(breedPopulationList.size() - 1);
-                mutationPoint = generator.nextInt(numberOfItems);
+                mutationPoint = generator.nextInt(numberOfItems - 1);
                 if (mutatedGene.substring(mutationPoint, mutationPoint + 1).equals("1")) {
-                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "0" + mutatedGene.substring(mutationPoint);
+                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "0" + mutatedGene.substring(mutationPoint + 1);
                     breedPopulationList.set(breedPopulationList.size() - 1, newMutatedGene);
                 }
                 if (mutatedGene.substring(mutationPoint, mutationPoint + 1).equals("0")) {
-                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "1" + mutatedGene.substring(mutationPoint);
+                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "1" + mutatedGene.substring(mutationPoint + 1);
                     breedPopulationList.set(breedPopulationList.size() - 1, newMutatedGene);
                 }
             }
             if (whichGene > 50) {
                 mutatedGene = breedPopulationList.get(breedPopulationList.size() - 2);
-                mutationPoint = generator.nextInt(numberOfItems);
+                mutationPoint = generator.nextInt(numberOfItems - 1);
                 if (mutatedGene.substring(mutationPoint, mutationPoint + 1).equals("1")) {
-                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "0" + mutatedGene.substring(mutationPoint);
+                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "0" + mutatedGene.substring(mutationPoint + 1);
                     breedPopulationList.set(breedPopulationList.size() - 1, newMutatedGene);
                 }
                 if (mutatedGene.substring(mutationPoint, mutationPoint + 1).equals("0")) {
-                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "1" + mutatedGene.substring(mutationPoint);
+                    newMutatedGene = mutatedGene.substring(0, mutationPoint) + "1" + mutatedGene.substring(mutationPoint + 1);
                     breedPopulationList.set(breedPopulationList.size() - 1, newMutatedGene);
                 }
+
             }
         }
     }

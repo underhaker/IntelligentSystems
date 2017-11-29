@@ -120,6 +120,27 @@ public class AStar {
         return heuristicFunction + distance;
     }
 
+    private int heuristicManhattanCalculation(int[][] currentSolution, int distance) {
+        int heuristicFunction = 0;
+        boolean foundOriginal;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                foundOriginal = false;
+                for (int k = 0; k < n; k++) {
+                    if (foundOriginal) break;
+                    for (int p = 0; p < n; p++) {
+                        if (currentSolution[i][j] == finalSolution1[k][p]) {
+                            heuristicFunction+=Math.abs(i - k) + Math.abs(j - p);
+                            foundOriginal = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return heuristicFunction + distance;
+    }
+
     private String toString(int[][] solution) {
         StringBuilder arrayToString = new StringBuilder();
         for (int i = 0; i < n; i++) {
@@ -165,14 +186,14 @@ public class AStar {
                         if (i != 0) {
                             newSolution = swapNumbers(currentSolution, i, j, i - 1, j);
                             if (!used.contains(toString(newSolution))) {
-                                priorityQueue.add(new Solution(newSolution, heuristicCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "down", solution));
+                                priorityQueue.add(new Solution(newSolution, heuristicManhattanCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "down", solution));
                             }
                         }
                         //down
                         if (i != n - 1) {
                             newSolution = swapNumbers(currentSolution, i, j, i + 1, j);
                             if (!used.contains(toString(newSolution))) {
-                                priorityQueue.add(new Solution(newSolution, heuristicCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "up", solution));
+                                priorityQueue.add(new Solution(newSolution, heuristicManhattanCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "up", solution));
 
                             }
                         }
@@ -180,14 +201,14 @@ public class AStar {
                         if (j != 0) {
                             newSolution = swapNumbers(currentSolution, i, j, i, j - 1);
                             if (!used.contains(toString(newSolution))) {
-                                priorityQueue.add(new Solution(newSolution, heuristicCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "right", solution));
+                                priorityQueue.add(new Solution(newSolution, heuristicManhattanCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "right", solution));
                             }
                         }
                         //right
                         if (j != n - 1) {
                             newSolution = swapNumbers(currentSolution, i, j, i, j + 1);
                             if (!used.contains(toString(newSolution))) {
-                                priorityQueue.add(new Solution(newSolution, heuristicCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "left", solution));
+                                priorityQueue.add(new Solution(newSolution, heuristicManhattanCalculation(newSolution, distance + 1), distance + 1, solution.getMovesCounter() + 1, "left", solution));
                             }
                         }
                         break;
