@@ -3,7 +3,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -11,25 +10,30 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class KNN {
-
-    private List<Record> trainingRecords;
-    private List<Record> testingRecords;
+    //
+//    private List<Record> trainingRecords;
+//    private List<Record> testingRecords;
     private List<Integer> usedIndexes;
     private int testingSize;
     private final static double TRAINING_PERCENTAGE = 0.2;
     private final static String DATA_SET = "resources/iris.data.txt";
 
     public void solveKnn(int k) {
-        List<Record> records = readFromFile(DATA_SET);
-        usedIndexes = new ArrayList<>();
-        testingRecords = getTestingRecords(records);
-        trainingRecords = getTrainingRecords(records);
-        for (Record testingRecord : testingRecords) {
-            List<Record> neighbours = findKNearestNeighbours(trainingRecords, testingRecord, k);
-            String className = classify(neighbours);
-            testingRecord.setPredictedClassName(className);
+        int numberOfTries = 70;
+        double sumPredictions = 0;
+        for (int i = 0; i < numberOfTries; i++) {
+            List<Record> records = readFromFile(DATA_SET);
+            usedIndexes = new ArrayList<>();
+            List<Record> testingRecords = getTestingRecords(records);
+            List<Record> trainingRecords = getTrainingRecords(records);
+            for (Record testingRecord : testingRecords) {
+                List<Record> neighbours = findKNearestNeighbours(trainingRecords, testingRecord, k);
+                String className = classify(neighbours);
+                testingRecord.setPredictedClassName(className);
+            }
+            sumPredictions+= getPrediction(testingRecords);
         }
-        System.out.println(getPrediction() * 100 + "%");
+        System.out.println(sumPredictions / numberOfTries * 100 + "%");
     }
 
     private String classify(List<Record> neighbours) {
@@ -94,13 +98,13 @@ public class KNN {
         return Math.sqrt(sum);
     }
 
-    private double getPrediction() {
+    private double getPrediction(List<Record> testingRecords) {
         int correctPredictions = 0;
         for (Record testingRecord : testingRecords) {
             if (testingRecord.getClassName().equals(testingRecord.getPredictedClassName())) {
                 correctPredictions++;
             }
-            System.out.println("predicted:" + testingRecord.getPredictedClassName() + "   actual:" + testingRecord.getClassName());
+//            System.out.println("predicted:" + testingRecord.getPredictedClassName() + "   actual:" + testingRecord.getClassName());
         }
         return (double) correctPredictions / testingRecords.size();
     }
