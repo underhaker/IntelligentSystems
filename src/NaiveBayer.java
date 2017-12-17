@@ -34,7 +34,7 @@ public class NaiveBayer {
                 if (posteriorDemocrat >= posteriorRepublican) {
                     testingRecord.setPredictedClassName("democrat");
                 } else {
-                    testingRecord.setPredictedClassName("republic");
+                    testingRecord.setPredictedClassName("republican");
                 }
                 if (testingRecord.getClassName().equals(testingRecord.getPredictedClassName())) {
                     predictions++;
@@ -45,19 +45,11 @@ public class NaiveBayer {
         System.out.println((sumPredictions / CROSS_FOLD_VALIDATION_SIZE) * 100 + "%");
     }
 
-//    private double getPrediction(List<Record> testingRecords) {
-//        int correctPredictions = 0;
-//        for (Record testingRecord : testingRecords) {
-//            if (testingRecord.getClassName().equals(testingRecord.getPredictedClassName())) {
-//                correctPredictions++;
-//            }
-//        }
-//        return (double) correctPredictions / testingRecords.size();
-//    }
 
     private double findPosterior(List<Record> trainingRecords, Record testingRecord, String className) {
-        long classCounter = trainingRecords.stream().filter(record -> record.getClassName().equals(className)).count();
-        double posterior = ((double) classCounter / trainingRecords.size());
+        long classCounter = trainingRecords.stream().filter(record -> record.getClassName().equals(className) && !record.isUnknown).count();
+        long trainingSize = trainingRecords.stream().filter(record -> !record.isUnknown).count();
+        double posterior = ((double) classCounter / trainingSize);
         double pConditional;
         for (int i = 0; i < ATTRIBUTES_SIZE; i++) {
             pConditional = getPConditional(trainingRecords, testingRecord, className, i);
@@ -67,18 +59,13 @@ public class NaiveBayer {
     }
 
     private double getPConditional(List<Record> trainingRecords, Record testingRecord, String className, int attributeIndex) {
-        double pConditional;
-        double dispersion = 0;
-        double average = trainingRecords.stream().filter(record -> record.getClassName().equals(className)).mapToInt(record -> record.getAttributes()[attributeIndex]).average().getAsDouble();
-        for (Record record : trainingRecords) {
-            if (record.getClassName().equals(className)) {
-                dispersion += Math.pow((record.getAttributes()[attributeIndex] - average), 2);
-            }
+        if (testingRecord.getAttributes()[attributeIndex] == 0) {
+            return 1;
         }
-        dispersion = dispersion / trainingRecords.size();
-        double firstPart = 1.0 / Math.sqrt(2.0 * Math.PI * dispersion);
-        double powPart = -Math.pow(testingRecord.getAttributes()[attributeIndex] - average, 2) / (2.0 * dispersion);
-        pConditional = firstPart * Math.pow(Math.E, powPart);
+        double pConditional;
+        long classCount = trainingRecords.stream().filter(record -> record.getClassName().equals(className) && record.getAttributes()[attributeIndex] == testingRecord.getAttributes()[attributeIndex]).count();
+        long classSize = trainingRecords.stream().filter(record -> record.getClassName().equals(className) && record.getAttributes()[attributeIndex] != 0).count();
+        pConditional = (double) classCount / classSize;
         return pConditional;
     }
 
@@ -126,11 +113,13 @@ public class NaiveBayer {
             while ((line = br.readLine()) != null) {
                 input = line.replaceAll("'", "").split(",");
                 Record record = new Record();
+                boolean isUnknown = false;
                 int[] attributes = new int[ATTRIBUTES_SIZE];
                 for (int i = 0; i < ATTRIBUTES_SIZE; i++) {
                     switch (input[i]) {
                         case "?":
                             attributes[i] = 0;
+                            isUnknown = true;
                             break;
                         case "n":
                             attributes[i] = 1;
@@ -142,6 +131,7 @@ public class NaiveBayer {
                 }
                 record.setAttributes(attributes);
                 record.setClassName(input[input.length - 1]);
+                record.setUnknown(isUnknown);
                 records.add(record);
             }
             return records;
@@ -156,6 +146,15 @@ public class NaiveBayer {
         private String className;
         private String predictedClassName;
         private int[] attributes;
+        private boolean isUnknown;
+
+        public boolean isUnknown() {
+            return isUnknown;
+        }
+
+        public void setUnknown(boolean unknown) {
+            isUnknown = unknown;
+        }
 
         public String getClassName() {
             return className;

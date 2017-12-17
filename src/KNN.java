@@ -10,56 +10,69 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class KNN {
+    private final static double TRAINING_PERCENTAGE = 0.2;
+    private final static String DATA_SET = "resources/iris.data.txt";
     //
 //    private List<Record> trainingRecords;
 //    private List<Record> testingRecords;
     private List<Integer> usedIndexes;
     private int testingSize;
-    private final static double TRAINING_PERCENTAGE = 0.2;
-    private final static String DATA_SET = "resources/iris.data.txt";
+
+    public static void main(String[] args) {
+        KNN knn = new KNN();
+//        Scanner scanner = new Scanner(System.in);
+//        int k = scanner.nextInt();
+        int k = 4;
+        knn.solveKnn(k);
+    }
 
     public void solveKnn(int k) {
-        int numberOfTries = 70;
-        double sumPredictions = 0;
-        for (int i = 0; i < numberOfTries; i++) {
-            List<Record> records = readFromFile(DATA_SET);
-            usedIndexes = new ArrayList<>();
-            List<Record> testingRecords = getTestingRecords(records);
-            List<Record> trainingRecords = getTrainingRecords(records);
-            for (Record testingRecord : testingRecords) {
-                List<Record> neighbours = findKNearestNeighbours(trainingRecords, testingRecord, k);
-                String className = classify(neighbours);
-                testingRecord.setPredictedClassName(className);
-            }
-            sumPredictions+= getPrediction(testingRecords);
+        double prediction;
+        List<Record> records = readFromFile(DATA_SET);
+        usedIndexes = new ArrayList<>();
+        List<Record> testingRecords = getTestingRecords(records);
+        List<Record> trainingRecords = getTrainingRecords(records);
+        for (Record testingRecord : testingRecords) {
+            List<Record> neighbours = findKNearestNeighbours(trainingRecords, testingRecord, k);
+            String className = classify(neighbours);
+            testingRecord.setPredictedClassName(className);
         }
-        System.out.println(sumPredictions / numberOfTries * 100 + "%");
+        prediction = getPrediction(testingRecords);
+        System.out.println(prediction * 100 + "%");
     }
 
     private String classify(List<Record> neighbours) {
-        HashMap<String, Double> map = new HashMap<>();
+        HashMap<String, Record> map = new HashMap<>();
         double normalizedDistance;
         for (Record neighbour : neighbours) {
             if (!map.containsKey(neighbour.getClassName())) {
                 normalizedDistance = 1 / neighbour.getDistance();
-                map.put(neighbour.getClassName(), 1 / normalizedDistance);
+                neighbour.setCountSize(neighbour.getCountSize() + 1);
+                neighbour.setDistance(normalizedDistance);
+                map.put(neighbour.getClassName(), neighbour);
             } else {
-                double distance = map.get(neighbour.getClassName());
+                Record record = map.get(neighbour.getClassName());
+                double distance = record.getDistance();
                 normalizedDistance = 1 / neighbour.getDistance();
                 distance += normalizedDistance;
-                map.put(neighbour.getClassName(), distance);
+                record.setDistance(distance);
+                record.setCountSize(record.getCountSize() + 1);
+                map.put(neighbour.getClassName(), record);
             }
         }
 
         double maxValue = 0;
+        int frequencyCounter = 0;
         Set<String> classNameSet = map.keySet();
         Iterator<String> iterator = classNameSet.iterator();
         String predictedClassName = null;
         while (iterator.hasNext()) {
             String className = iterator.next();
-            double distance = map.get(className);
-            if (distance > maxValue) {
+            Record record = map.get(className);
+            double distance = record.getDistance();
+            if (distance > maxValue && record.getCountSize() > frequencyCounter) {
                 maxValue = distance;
+                frequencyCounter = record.getCountSize();
                 predictedClassName = className;
             }
         }
@@ -104,7 +117,6 @@ public class KNN {
             if (testingRecord.getClassName().equals(testingRecord.getPredictedClassName())) {
                 correctPredictions++;
             }
-//            System.out.println("predicted:" + testingRecord.getPredictedClassName() + "   actual:" + testingRecord.getClassName());
         }
         return (double) correctPredictions / testingRecords.size();
     }
@@ -130,7 +142,6 @@ public class KNN {
         return testingRecords;
     }
 
-
     private List<Record> getTrainingRecords(List<Record> records) {
         List<Record> trainingRecords = new ArrayList<>();
         int index = 0;
@@ -144,7 +155,6 @@ public class KNN {
         }
         return trainingRecords;
     }
-
 
     private List<Record> readFromFile(String fileName) {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -170,12 +180,20 @@ public class KNN {
         return null;
     }
 
-
     class Record {
         private double distance;
         private double[] attributes;
+        private int countSize;
         private String className;
         private String predictedClassName;
+
+        public int getCountSize() {
+            return countSize;
+        }
+
+        public void setCountSize(int countSize) {
+            this.countSize = countSize;
+        }
 
         double getDistance() {
             return distance;
@@ -208,12 +226,5 @@ public class KNN {
         void setPredictedClassName(String predictedClassName) {
             this.predictedClassName = predictedClassName;
         }
-    }
-
-    public static void main(String[] args) {
-        KNN knn = new KNN();
-        Scanner scanner = new Scanner(System.in);
-        int k = scanner.nextInt();
-        knn.solveKnn(k);
     }
 }
