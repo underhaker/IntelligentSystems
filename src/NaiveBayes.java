@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class NaiveBayer {
+public class NaiveBayes {
     private static final int ATTRIBUTES_SIZE = 16;
     private static final int CROSS_FOLD_VALIDATION_SIZE = 10;
     private final static String DATA_SET = "resources/congress.data.txt";
@@ -14,7 +14,7 @@ public class NaiveBayer {
     private List<Integer> usedIndexes;
 
     public static void main(String[] args) {
-        NaiveBayer naiveBayer = new NaiveBayer();
+        NaiveBayes naiveBayer = new NaiveBayes();
         naiveBayer.solveNaiveBayer();
     }
 

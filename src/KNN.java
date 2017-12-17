@@ -20,9 +20,9 @@ public class KNN {
 
     public static void main(String[] args) {
         KNN knn = new KNN();
-//        Scanner scanner = new Scanner(System.in);
-//        int k = scanner.nextInt();
-        int k = 4;
+        Scanner scanner = new Scanner(System.in);
+        int k = scanner.nextInt();
+//        int k = 3;
         knn.solveKnn(k);
     }
 
